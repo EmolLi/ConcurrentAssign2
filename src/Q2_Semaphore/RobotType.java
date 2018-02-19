@@ -1,4 +1,4 @@
-package Q2;
+package Q2_Semaphore;
 
 /**
  * Created by emol on 2/19/18.

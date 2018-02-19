@@ -1,4 +1,4 @@
-package Q2;
+package Q2_Semaphore;
 
 import java.util.HashMap;
 

@@ -1,8 +1,8 @@
-package Q2;
+package Q2_Semaphore;
 
 /**
  * Created by emol on 2/19/18.
- * Bin is the Monitor
+ * Bin is the contains the semaphore
  */
 public class Bin {
     private Part type;
