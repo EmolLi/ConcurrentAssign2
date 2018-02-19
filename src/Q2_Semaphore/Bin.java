@@ -1,5 +1,7 @@
 package Q2_Semaphore;
 
+import java.util.concurrent.Semaphore;
+
 /**
  * Created by emol on 2/19/18.
  * Bin is the contains the semaphore
@@ -8,11 +10,14 @@ public class Bin {
     private Part type;
     private volatile int cnt;
     private boolean available;
+    public Semaphore s;
+
 
     public Bin(Part t){
         this.type = t;
         this.cnt = 0;
         this.available = true;
+        this.s = new Semaphore(1);
     }
 
 
@@ -50,28 +55,30 @@ public class Bin {
      * @param amount amount of object (produced or acquired)
      * @param output if the robot is producing things
      */
-    public synchronized void acquire(int rid, int amount, boolean output){
+    public boolean acquire(int rid, int amount, boolean output) throws InterruptedException{
         System.out.println("Robot " + rid +" is acquiring Bin " + type.toString());
 
-        while (!canAcquire(amount, output)){
-            try{
-                wait();
-            }catch (Exception e){
-                e.printStackTrace();
-            }
-        }
+
+        s.acquire();
 
         // acquire
         this.available = false;
-        this.cnt = output ? this.cnt + amount : this.cnt - amount;
+        return canAcquire(amount, output);
+//        this.cnt = output ? this.cnt + amount : this.cnt - amount;
     }
 
+
+    // already acquired semaphore
+    public void amountChange(int rid, int amount, boolean output){
+        System.out.println("Robot " + rid + (output ? " put " : " toke ")+ amount +" from Bin " + type.toString());
+        this.cnt = output ? this.cnt + amount : this.cnt - amount;
+    }
 
     // release the bin
     public synchronized void release(int rid){
         System.out.println("Robot " + rid +" released Bin " + type.toString());
         this.available = true;
-        notify();
+        s.release();
     }
 
 

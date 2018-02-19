@@ -64,12 +64,16 @@ public class Robot implements Runnable {
         if (foreleg) bins.get(Part.FORELEG).acquire(rid, 1, true);
         else bins.get(Part.HINDLEG).acquire(rid, 1, true);
 
+
+
         Thread.sleep(ThreadLocalRandom.current().nextInt(10, 20));
 
-        bins.get(Part.LEG).release(rid);
-        bins.get(Part.TOE).release(rid);
+
+
         if (foreleg) bins.get(Part.FORELEG).release(rid);
         else bins.get(Part.HINDLEG).release(rid);
+        bins.get(Part.TOE).release(rid);
+        bins.get(Part.LEG).release(rid);
     }
 
 
@@ -79,27 +83,41 @@ public class Robot implements Runnable {
         boolean bodyWithTail = bins.get(Part.BODY_TAIL).canAcquire(1, false);
 
         // material (input)
-        if (bodyWithTail)
+        if (bodyWithTail){
+            bins.get(Part.FORELEG).acquire(rid, 2, false);
+            bins.get(Part.HINDLEG).acquire(rid, 2, false);
             bins.get(Part.BODY_TAIL).acquire(rid, 1, false);
-        else bins.get(Part.BODY).acquire(rid, 1, false);
+        }
 
-        bins.get(Part.FORELEG).acquire(rid, 2, false);
-        bins.get(Part.HINDLEG).acquire(rid, 2, false);
+        else {
+            bins.get(Part.BODY).acquire(rid, 1, false);
+            bins.get(Part.FORELEG).acquire(rid, 2, false);
+            bins.get(Part.HINDLEG).acquire(rid, 2, false);
+        }
+
 
         // output
         if (bodyWithTail) bins.get(Part.BODY_TAIL_LEGS).acquire(rid, 1, true);
         else bins.get(Part.BODY_LEGS).acquire(rid, 1, true);
 
+
         Thread.sleep(ThreadLocalRandom.current().nextInt(30, 50));
+
+
 
         bins.get(Part.FORELEG).release(rid);
         bins.get(Part.HINDLEG).release(rid);
         if (bodyWithTail) {
-            bins.get(Part.BODY_TAIL).release(rid);
             bins.get(Part.BODY_TAIL_LEGS).release(rid);
+            bins.get(Part.BODY_TAIL).release(rid);
+            bins.get(Part.HINDLEG).release(rid);
+            bins.get(Part.FORELEG).release(rid);
         } else {
-            bins.get(Part.BODY).release(rid);
             bins.get(Part.BODY_LEGS).release(rid);
+            bins.get(Part.HINDLEG).release(rid);
+            bins.get(Part.FORELEG).release(rid);
+            bins.get(Part.BODY).release(rid);
+
         }
     }
 
@@ -109,26 +127,30 @@ public class Robot implements Runnable {
         boolean bodyWithLeg = bins.get(Part.BODY_LEGS).canAcquire(1, false);
 
         // material (input)
+
+        bins.get(Part.TAIL).acquire(rid, 1, false);
+
         if (bodyWithLeg)
             bins.get(Part.BODY_LEGS).acquire(rid, 1, false);
         else bins.get(Part.BODY).acquire(rid, 1, false);
-
-        bins.get(Part.TAIL).acquire(rid, 1, false);
 
         // output
         if (bodyWithLeg) bins.get(Part.BODY_TAIL_LEGS).acquire(rid, 1, true);
         else bins.get(Part.BODY_TAIL).acquire(rid, 1, true);
 
+
         Thread.sleep(ThreadLocalRandom.current().nextInt(10, 20));
 
-        bins.get(Part.TAIL).release(rid);
+
+
         if (bodyWithLeg) {
-            bins.get(Part.BODY_LEGS).release(rid);
             bins.get(Part.BODY_TAIL_LEGS).release(rid);
+            bins.get(Part.BODY_LEGS).release(rid);
         } else {
-            bins.get(Part.BODY).release(rid);
             bins.get(Part.BODY_TAIL).release(rid);
+            bins.get(Part.BODY).release(rid);
         }
+        bins.get(Part.TAIL).release(rid);
     }
 
 
@@ -138,11 +160,12 @@ public class Robot implements Runnable {
         boolean withWisker = bins.get(Part.HEAD_WHISKER).canAcquire(1, false);
 
         // material (input)
-        if (withWisker)
+        bins.get(Part.EYE).acquire(rid, 2, false);
+        if (withWisker) {
             bins.get(Part.HEAD_WHISKER).acquire(rid, 1, false);
+        }
         else bins.get(Part.HEAD).acquire(rid, 1, false);
 
-        bins.get(Part.EYE).acquire(rid, 2, false);
 
         // output
         if (withWisker) bins.get(Part.HEAD_WHISKER_EYE).acquire(rid, 1, true);
@@ -150,14 +173,14 @@ public class Robot implements Runnable {
 
         Thread.sleep(ThreadLocalRandom.current().nextInt(10, 30));
 
-        bins.get(Part.EYE).release(rid);
         if (withWisker) {
-            bins.get(Part.HEAD_WHISKER).release(rid);
             bins.get(Part.HEAD_WHISKER_EYE).release(rid);
+            bins.get(Part.HEAD_WHISKER).release(rid);
         } else {
-            bins.get(Part.HEAD).release(rid);
             bins.get(Part.HEAD_EYE).release(rid);
+            bins.get(Part.HEAD).release(rid);
         }
+        bins.get(Part.EYE).release(rid);
     }
 
 //        (e) Whiskers. A head, with or without eyes, is acquired along with 6 whiskers to form a more complete
@@ -167,11 +190,12 @@ public class Robot implements Runnable {
         boolean withEye = bins.get(Part.HEAD_EYE).canAcquire(1, false);
 
         // material (input)
-        if (withEye)
+        bins.get(Part.WHISKER).acquire(rid, 6, false);
+        if (withEye) {
             bins.get(Part.HEAD_EYE).acquire(rid, 1, false);
+        }
         else bins.get(Part.HEAD).acquire(rid, 1, false);
 
-        bins.get(Part.WHISKER).acquire(rid, 6, false);
 
         // output
         if (withEye) bins.get(Part.HEAD_WHISKER_EYE).acquire(rid, 1, true);
@@ -179,14 +203,14 @@ public class Robot implements Runnable {
 
         Thread.sleep(ThreadLocalRandom.current().nextInt(20, 60));
 
-        bins.get(Part.WHISKER).release(rid);
         if (withEye) {
-            bins.get(Part.HEAD_EYE).release(rid);
             bins.get(Part.HEAD_WHISKER_EYE).release(rid);
+            bins.get(Part.HEAD_EYE).release(rid);
         } else {
-            bins.get(Part.HEAD).release(rid);
             bins.get(Part.HEAD_WHISKER).release(rid);
+            bins.get(Part.HEAD).release(rid);
         }
+        bins.get(Part.WHISKER).release(rid);
     }
 
 
@@ -195,8 +219,8 @@ public class Robot implements Runnable {
     public void taskCat() throws InterruptedException {
 
         // material (input)
-        bins.get(Part.HEAD_WHISKER_EYE).acquire(rid, 1, false);
         bins.get(Part.BODY_TAIL_LEGS).acquire(rid, 1, false);
+        bins.get(Part.HEAD_WHISKER_EYE).acquire(rid, 1, false);
 
 
         // output
@@ -208,9 +232,9 @@ public class Robot implements Runnable {
             e.printStackTrace();
         }
 
+        bins.get(Part.CAT).release(rid);
         bins.get(Part.HEAD_WHISKER_EYE).release(rid);
         bins.get(Part.BODY_TAIL_LEGS).release(rid);
-        bins.get(Part.CAT).release(rid);
 
         this.cnt++;
     }
