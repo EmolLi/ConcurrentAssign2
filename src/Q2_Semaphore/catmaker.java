@@ -41,23 +41,36 @@ public class catmaker {
         Thread[] robots = new Thread[robotCnt];
         int rid = 0;
         for (RobotType rt : RobotType.values()){
-            if (rt != RobotType.R_CAT) {
-                robots[rid] = new Thread(new Robot(rid, rt));
-                robots[rid].start();
-                rid ++;
+            if (rt == RobotType.R_CAT) {
+                continue;
             }
+            robots[rid] = new Thread(new Robot(rid, rt));
+            robots[rid].start();
+            rid++;
 
             robots[rid] = new Thread(new Robot(rid, rt));
             robots[rid].start();
             rid++;
         }
 
-        for (int i = 0; i < robotCnt; i++){
-            try {
-                robots[rid].join();
-            } catch (InterruptedException e){}
+        robots[10] = new Thread(new Robot(10, RobotType.R_CAT));
+        robots[10].start();
+
+        try{
+            robots[10].join();
+        }catch (Exception e){}
+
+
+        for (int i = 0; i < robotCnt - 1; i++){
+            robots[i].interrupt();
         }
 
+        for (int i = 0; i < robotCnt - 1; i++){
+            try {
+
+                robots[i].join();
+            } catch (InterruptedException e){}
+        }
         System.out.println("============DONE=================");
     }
 
@@ -78,7 +91,7 @@ public class catmaker {
 
         TASK_MATERIAL[T_HINDLEG][LEG] = 1;
         TASK_MATERIAL[T_HINDLEG][TOE] = 5;
-        TASK_OUTPUT[T_HINDLEG] = T_HINDLEG;
+        TASK_OUTPUT[T_HINDLEG] = HINDLEG;
         TASK_TIME_MIN[T_HINDLEG] = 10;
         TASK_TIME_MAX[T_HINDLEG] = 20;
 

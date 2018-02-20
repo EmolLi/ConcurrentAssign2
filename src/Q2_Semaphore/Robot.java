@@ -28,7 +28,7 @@ public class Robot implements Runnable {
     @Override
     public void run() {
         try {
-            while (cnt <= 250) {
+            while (cnt < 250) {
                 int task = selectTask();
                 performTask(task);
             }
@@ -67,6 +67,7 @@ public class Robot implements Runnable {
     private void performTask(int task) throws InterruptedException{
         boolean[] result = acqurieInputBins(TASK_MATERIAL[task]);
 
+
         // if we can acquire all the input bins and there are enough resources in the bin
         // if there isn't enough resource, we will release all the acquired input bins and return FIXME: is this spinning?
         if (checkIfAcquiredInputBinsSuccessfully(result)){
@@ -85,7 +86,25 @@ public class Robot implements Runnable {
             bins[TASK_OUTPUT[task]].release(rid);
 
 
-            if (task == T_CAT) cnt++;
+            if (task == T_CAT) {
+                cnt++;
+                System.out.println("Cat number: " + cnt);
+            }
+//            System.out.println("Robot " + rid + " - " + type);
+        }
+        else{
+            /**
+            if (task == T_CAT){
+                System.out.println("cat sleep: "
+                        +bins[BODY_TAIL_LEGS].cnt + " "
+                        + bins[HEAD_WHISKER_EYE].cnt + " "
+                        +bins[FORELEG].cnt + " "
+                        +bins[FORELEG].cnt + " "
+                        +bins[FORELEG].cnt + " "
+                        +bins[FORELEG].cnt + " "
+                        +bins[FORELEG].cnt + " ");
+            }**/
+            Thread.sleep(ThreadLocalRandom.current().nextInt(1, 5));
         }
 
     }

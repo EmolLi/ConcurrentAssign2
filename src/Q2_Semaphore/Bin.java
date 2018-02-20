@@ -9,7 +9,7 @@ import static Q2_Semaphore.catmaker.*;
  */
 public class Bin {
     private int type;
-    private volatile int cnt;
+    public volatile int cnt;
     public Semaphore s;
 
 
@@ -56,7 +56,7 @@ public class Bin {
      * @param output if the robot is producing things
      */
     public boolean acquire(int rid, int amount, boolean output) throws InterruptedException{
-        System.out.println("Robot " + rid +" is acquiring Bin " + type);
+//        System.out.println("Robot " + rid +" is acquiring Bin " + type);
 
         if (!canAcquire(amount, output)) return false;
 
@@ -71,14 +71,14 @@ public class Bin {
 
     // already acquired semaphore
     public void updateAmount(int rid, int amount, boolean output){
-        System.out.println("Robot " + rid + (output ? " put " : " toke ")+ amount +" from Bin " + type);
+//        System.out.println("Robot " + rid + (output ? " put " : " toke ")+ amount +" from Bin " + type);
         this.cnt = output ? this.cnt + amount : this.cnt - amount;
     }
 
 
     // release the bin
     public synchronized void release(int rid){
-        System.out.println("Robot " + rid +" released Bin " + type);
+//        System.out.println("Robot " + rid +" released Bin " + type);
         s.release();
     }
 
