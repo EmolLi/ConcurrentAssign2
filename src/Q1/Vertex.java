@@ -10,7 +10,7 @@ import static Q1.star.p;
  * Created by emol on 2/18/18.
  */
 public class Vertex {
-    volatile double x;  // FIXME: X, Y may be changed by other threads
+    volatile double x;  // FIXME: X, Y may be changed by other threads, do I need volatile if this variable is protected by a synchronized block?
     volatile double y;
     int index;
     Lock l = new ReentrantLock();
@@ -25,10 +25,7 @@ public class Vertex {
 
     // move the position of the vertex
     // the new position should be within the triangle formed by prev, this, next
-    // FIXME: how does synchronized work exactly? if the method is synchronized, this object inside will be locked.
-    // is this.prev, this.next all locked? if yes, are they all locked at the beginning, or one by one when we use them.
-    // If some thread outside the synchronized block trying to access (read or write) a locked object in the
-    // synchronized block, will it be blocked?
+    // FIXME: how does synchronized work exactly? if the method is synchronized, this object will be locked, are this.prev, this.next all locked? if yes, are they all locked at the beginning, or one by one when we use them. If some thread outside the synchronized block trying to access (read or write) a locked object in the synchronized block, will it be blocked?
 
     public void move(int index){
         double r1 = Math.random();
@@ -95,13 +92,14 @@ public class Vertex {
         this.y = newY;
 **/
 
-        // TODO: Why must I release lock in order?
+        // TODO: Why should I release lock in reverse order?
 
 
 //        synchronized (this){
 //            moveHelper(r1, r2, r3);
 //        }
         /** FIXME: does this work?
+         * FIXME: use synchronized block or lock?
         // avoid deadlock by acquiring resources in order
 
         // this is the first node

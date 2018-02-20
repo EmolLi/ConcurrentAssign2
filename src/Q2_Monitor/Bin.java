@@ -1,15 +1,18 @@
 package Q2_Monitor;
 
+import static Q2_Monitor.catmaker.*;
+
 /**
  * Created by emol on 2/19/18.
  * Bin is the Monitor
  */
+// FIXME: is this something like a monitor. Should all getters in the monitor be synchronized?
 public class Bin {
-    private Part type;
+    private int type;
     private volatile int cnt;
     private boolean available;
 
-    public Bin(Part t){
+    public Bin(int t){
         this.type = t;
         this.cnt = 0;
         this.available = true;
@@ -40,7 +43,7 @@ public class Bin {
     public boolean canAcquire(int amount, boolean output){
         // no need to worry about if there is object in the bin if we are
         // producing things
-        if (output) return this.available;
+        if (output) return available;
         return this.hasItem(amount) && this.available;
     }
 
@@ -51,7 +54,7 @@ public class Bin {
      * @param output if the robot is producing things
      */
     public synchronized void acquire(int rid, int amount, boolean output) throws InterruptedException{
-        System.out.println("Robot " + rid +" is acquiring Bin " + type.toString());
+//        System.out.println("Robot " + rid +" is acquiring Bin " + type);
 
         while (!canAcquire(amount, output)){
             wait();
@@ -59,13 +62,20 @@ public class Bin {
 
         // acquire
         this.available = false;
+    }
+
+
+
+    // already acquired semaphore
+    public void updateAmount(int rid, int amount, boolean output){
+//        System.out.println("Robot " + rid + (output ? " put " : " toke ")+ amount +" from Bin " + type);
         this.cnt = output ? this.cnt + amount : this.cnt - amount;
     }
 
 
     // release the bin
     public synchronized void release(int rid){
-        System.out.println("Robot " + rid +" released Bin " + type.toString());
+//        System.out.println("Robot " + rid +" released Bin " + type);
         this.available = true;
         notify();
     }

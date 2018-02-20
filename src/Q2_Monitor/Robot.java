@@ -2,12 +2,16 @@ package Q2_Monitor;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import static Q2_Monitor.catmaker.bins;
+import static Q2_Monitor.catmaker.*;
 
 /**
  * Created by emol on 2/19/18.
  */
 public class Robot implements Runnable {
+
+    static int INPUT_ACQUIRE_SUCCESS = 16;
+
+
     private int rid;
     private RobotType type;
     private int cnt;
@@ -21,27 +25,9 @@ public class Robot implements Runnable {
     @Override
     public void run() {
         try {
-            while (cnt <= 250) {
-                switch (type) {
-                    case R_CAT:
-                        taskCat();
-                        break;
-                    case R_EYES:
-                        taskEyes();
-                        break;
-                    case R_LEGS:
-                        taskLegs();
-                        break;
-                    case R_TAIL:
-                        taskTail();
-                        break;
-                    case R_TOES:
-                        taskToes();
-                        break;
-                    case R_WHISKERS:
-                        taskWhisker();
-                        break;
-                }
+            while (cnt < 250) {
+                int task = selectTask();
+                performTask(task);
             }
         } catch (InterruptedException e) {
             System.out.println("Robot " + rid + " exited.");
@@ -49,196 +35,106 @@ public class Robot implements Runnable {
 
     }
 
-    // FIXME: when a robot is doing some task, all the input bins and output bin are blocked, for the whole process ?
-    // Toes. A leg is acquired, and (randomly) either 4 toes or 5 toes are acquired and attached, producing
-    // either a single foreleg or hindleg. This takes 10–20ms.
-    public void taskToes() throws InterruptedException {
-        boolean foreleg = (Math.random() < 0.5);
 
-        // material (input)
-        bins.get(Part.LEG).acquire(rid, 1, false);
-        if (foreleg) bins.get(Part.TOE).acquire(rid, 4, false);
-        else bins.get(Part.TOE).acquire(rid, 5, false);
+    private int selectTask(){
+        switch (type) {
+            case R_CAT:
+                return T_CAT;
 
-        // output
-        if (foreleg) bins.get(Part.FORELEG).acquire(rid, 1, true);
-        else bins.get(Part.HINDLEG).acquire(rid, 1, true);
+            case R_EYES:
+                return bins[HEAD_WHISKER].canAcquire(1, false) ? T_HEAD_WHISKER_EYE_E : T_HEAD_EYE;
 
+            case R_WHISKERS:
+                return bins[HEAD_EYE].canAcquire(1, false) ? T_HEAD_WHISKER_EYE_W : T_HEAD_WHISKER;
 
+            case R_LEGS:
+                return bins[BODY_TAIL].canAcquire(1, false) ? T_BODY_TAIL_LEGS_L : T_BODY_LEGS;
 
-        Thread.sleep(ThreadLocalRandom.current().nextInt(10, 20));
+            case R_TAIL:
+                return bins[BODY_LEGS].canAcquire(1, false) ? T_BODY_TAIL_LEGS_T : T_BODY_TAIL;
 
-
-
-        if (foreleg) bins.get(Part.FORELEG).release(rid);
-        else bins.get(Part.HINDLEG).release(rid);
-        bins.get(Part.TOE).release(rid);
-        bins.get(Part.LEG).release(rid);
+            case R_TOES:
+                return ThreadLocalRandom.current().nextBoolean() ? T_HINDLEG : T_FORELEG;
+        }
+        return -1;
     }
 
 
-    //    Legs. A body is acquired, with or without a tail, and 4 legs are attached to the body to give it 2
-//    forelegs and 2 hindlegs. This takes 30–50ms.
-    public void taskLegs() throws InterruptedException {
-        boolean bodyWithTail = bins.get(Part.BODY_TAIL).canAcquire(1, false);
 
-        // material (input)
-        if (bodyWithTail){
-            bins.get(Part.FORELEG).acquire(rid, 2, false);
-            bins.get(Part.HINDLEG).acquire(rid, 2, false);
-            bins.get(Part.BODY_TAIL).acquire(rid, 1, false);
+    private void performTask(int task) throws InterruptedException{
+
+        boolean[] result = acqurieInputBins(TASK_MATERIAL[task]);
+        takeResource(TASK_MATERIAL[task]);
+        // release all the input bins
+        releaseAcquiredParts(result);
+
+
+        Thread.sleep(ThreadLocalRandom.current().nextInt(TASK_TIME_MIN[task], TASK_TIME_MAX[task]));
+
+
+        // acquire output bin
+        bins[TASK_OUTPUT[task]].acquire(rid, 1, true);
+        // put object in output bin
+        bins[TASK_OUTPUT[task]].updateAmount(rid, 1, true);
+        bins[TASK_OUTPUT[task]].release(rid);
+
+
+        if (task == T_CAT) {
+            cnt++;
+            System.out.println("Cat number: " + cnt);
         }
-
-        else {
-            bins.get(Part.BODY).acquire(rid, 1, false);
-            bins.get(Part.FORELEG).acquire(rid, 2, false);
-            bins.get(Part.HINDLEG).acquire(rid, 2, false);
-        }
-
-
-        // output
-        if (bodyWithTail) bins.get(Part.BODY_TAIL_LEGS).acquire(rid, 1, true);
-        else bins.get(Part.BODY_LEGS).acquire(rid, 1, true);
-
-
-        Thread.sleep(ThreadLocalRandom.current().nextInt(30, 50));
+//            System.out.println("Robot " + rid + " - " + type);
 
 
 
-        bins.get(Part.FORELEG).release(rid);
-        bins.get(Part.HINDLEG).release(rid);
-        if (bodyWithTail) {
-            bins.get(Part.BODY_TAIL_LEGS).release(rid);
-            bins.get(Part.BODY_TAIL).release(rid);
-            bins.get(Part.HINDLEG).release(rid);
-            bins.get(Part.FORELEG).release(rid);
-        } else {
-            bins.get(Part.BODY_LEGS).release(rid);
-            bins.get(Part.HINDLEG).release(rid);
-            bins.get(Part.FORELEG).release(rid);
-            bins.get(Part.BODY).release(rid);
-
-        }
-    }
-
-    // (c) Tail. A body, with or without legs, is acquired along with 1 tail to form a more complete body. This
-    //  takes 10-20ms.
-    public void taskTail() throws InterruptedException {
-        boolean bodyWithLeg = bins.get(Part.BODY_LEGS).canAcquire(1, false);
-
-        // material (input)
-
-        bins.get(Part.TAIL).acquire(rid, 1, false);
-
-        if (bodyWithLeg)
-            bins.get(Part.BODY_LEGS).acquire(rid, 1, false);
-        else bins.get(Part.BODY).acquire(rid, 1, false);
-
-        // output
-        if (bodyWithLeg) bins.get(Part.BODY_TAIL_LEGS).acquire(rid, 1, true);
-        else bins.get(Part.BODY_TAIL).acquire(rid, 1, true);
-
-
-        Thread.sleep(ThreadLocalRandom.current().nextInt(10, 20));
-
-
-
-        if (bodyWithLeg) {
-            bins.get(Part.BODY_TAIL_LEGS).release(rid);
-            bins.get(Part.BODY_LEGS).release(rid);
-        } else {
-            bins.get(Part.BODY_TAIL).release(rid);
-            bins.get(Part.BODY).release(rid);
-        }
-        bins.get(Part.TAIL).release(rid);
     }
 
 
-    // (d) Eyes. A head, with or without whiskers, is acquired along with 2 eyes to form a more complete
-    // head. This takes 10-30ms.
-    public void taskEyes() throws InterruptedException {
-        boolean withWisker = bins.get(Part.HEAD_WHISKER).canAcquire(1, false);
 
-        // material (input)
-        bins.get(Part.EYE).acquire(rid, 2, false);
-        if (withWisker) {
-            bins.get(Part.HEAD_WHISKER).acquire(rid, 1, false);
+
+    /** release in reverse order **/
+    private void releaseAcquiredParts(boolean[] parts){
+        for (int p = CAT; p >= 0; p--){
+            if (parts[p]) bins[p].release(rid);
         }
-        else bins.get(Part.HEAD).acquire(rid, 1, false);
-
-
-        // output
-        if (withWisker) bins.get(Part.HEAD_WHISKER_EYE).acquire(rid, 1, true);
-        else bins.get(Part.HEAD_EYE).acquire(rid, 1, true);
-
-        Thread.sleep(ThreadLocalRandom.current().nextInt(10, 30));
-
-        if (withWisker) {
-            bins.get(Part.HEAD_WHISKER_EYE).release(rid);
-            bins.get(Part.HEAD_WHISKER).release(rid);
-        } else {
-            bins.get(Part.HEAD_EYE).release(rid);
-            bins.get(Part.HEAD).release(rid);
-        }
-        bins.get(Part.EYE).release(rid);
-    }
-
-//        (e) Whiskers. A head, with or without eyes, is acquired along with 6 whiskers to form a more complete
-//    head. This takes 20-60ms.
-
-    public void taskWhisker() throws InterruptedException {
-        boolean withEye = bins.get(Part.HEAD_EYE).canAcquire(1, false);
-
-        // material (input)
-        bins.get(Part.WHISKER).acquire(rid, 6, false);
-        if (withEye) {
-            bins.get(Part.HEAD_EYE).acquire(rid, 1, false);
-        }
-        else bins.get(Part.HEAD).acquire(rid, 1, false);
-
-
-        // output
-        if (withEye) bins.get(Part.HEAD_WHISKER_EYE).acquire(rid, 1, true);
-        else bins.get(Part.HEAD_WHISKER).acquire(rid, 1, true);
-
-        Thread.sleep(ThreadLocalRandom.current().nextInt(20, 60));
-
-        if (withEye) {
-            bins.get(Part.HEAD_WHISKER_EYE).release(rid);
-            bins.get(Part.HEAD_EYE).release(rid);
-        } else {
-            bins.get(Part.HEAD_WHISKER).release(rid);
-            bins.get(Part.HEAD).release(rid);
-        }
-        bins.get(Part.WHISKER).release(rid);
     }
 
 
-    //    (f) Cat. A head with both eyes and whiskers is attached to a body that has all 4 legs and a tail. This
-//    takes 10-20ms
-    public void taskCat() throws InterruptedException {
 
-        // material (input)
-        bins.get(Part.BODY_TAIL_LEGS).acquire(rid, 1, false);
-        bins.get(Part.HEAD_WHISKER_EYE).acquire(rid, 1, false);
+    /**
+     * acquire input bins in order
+     * @param requiredInputs    a int array specified which bins are required (the number indicates how many items are required in this bin)
+     * @return  acquireResult   a boolean array specified which bins are acquired successfully. Index 0 ~ 15 indicates the result for each individual bin, index 16 is the total result.
+     */
+    private boolean[] acqurieInputBins(int[] requiredInputs) throws InterruptedException{
+        // init return result
+        boolean[] result = new boolean[INPUT_ACQUIRE_SUCCESS + 1];
 
-
-        // output
-        bins.get(Part.CAT).acquire(rid, 1, true);
-
-        try {
-            Thread.sleep(ThreadLocalRandom.current().nextInt(10, 20));
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        // acquire input bin in order
+        for (int p = 0; p <= CAT; p++){
+            if (requiredInputs[p] > 0){
+                bins[p].acquire(rid, requiredInputs[p], false);
+                result[p] = true;
+            }
         }
 
-        bins.get(Part.CAT).release(rid);
-        bins.get(Part.HEAD_WHISKER_EYE).release(rid);
-        bins.get(Part.BODY_TAIL_LEGS).release(rid);
-
-        this.cnt++;
+        // acquired all bins successfully
+        result[INPUT_ACQUIRE_SUCCESS] = true;
+        return result;
     }
 
+
+
+    // take resource from the input bin. No need to check here as we can acquire a bin that is available and has enough resource
+    private void takeResource(int[] requiredInputs){
+        // acquire input bin in order
+        for (int p = 0; p <= CAT; p++){
+            if (requiredInputs[p] > 0){
+                bins[p].updateAmount(rid, requiredInputs[p], false);
+            }
+        }
+
+    }
 
 }
 

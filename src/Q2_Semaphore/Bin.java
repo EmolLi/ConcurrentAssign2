@@ -20,7 +20,7 @@ public class Bin {
     }
 
 
-    // FIXME: synchornized?
+
     private boolean hasItem(int amount){
         switch (type){
             // infinite primitive part
