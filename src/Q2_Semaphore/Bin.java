@@ -7,13 +7,13 @@ import java.util.concurrent.Semaphore;
  * Bin is the contains the semaphore
  */
 public class Bin {
-    private Part type;
+    private int type;
     private volatile int cnt;
     private boolean available;
     public Semaphore s;
 
 
-    public Bin(Part t){
+    public Bin(int t){
         this.type = t;
         this.cnt = 0;
         this.available = true;
@@ -69,7 +69,7 @@ public class Bin {
 
 
     // already acquired semaphore
-    public void amountChange(int rid, int amount, boolean output){
+    public void updateAmount(int rid, int amount, boolean output){
         System.out.println("Robot " + rid + (output ? " put " : " toke ")+ amount +" from Bin " + type.toString());
         this.cnt = output ? this.cnt + amount : this.cnt - amount;
     }
