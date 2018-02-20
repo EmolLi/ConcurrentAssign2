@@ -4,8 +4,8 @@ import java.util.Arrays;
 import java.util.concurrent.ThreadLocalRandom;
 
 
-import static Q2_Monitor.catmaker.bins;
-import static Q2_Semaphore.Part.CAT;
+import static Q2_Semaphore.catmaker.bins;
+
 
 /**
  * Created by emol on 2/19/18.
@@ -15,6 +15,7 @@ public class Robot implements Runnable {
     FORELEG = 7, HINDLEG = 8, BODY_TAIL = 9, BODY_LEGS = 10, BODY_TAIL_LEGS = 11,
     HEAD_WHISKER = 12, HEAD_EYE = 13,
     HEAD_WHISKER_EYE = 14, CAT = 15;
+    static int INPUT_ACQUIRE_SUCCESS = 16;
 
 
 
@@ -261,7 +262,12 @@ public class Robot implements Runnable {
 
 
 
-    private void releaseAcquiredPart(boolean[] parts){
+    /** release in reverse order **/
+    private void releaseAcquiredParts(boolean[] parts){
+        for (int p = CAT; p >= 0; p--){
+            if (parts[p]) bins.get(p).release(rid);
+        }
+        /**
         if (parts[CAT]) bins.get(Part.CAT).release(rid);
         if (parts[HEAD_WHISKER_EYE]) bins.get(Part.HEAD_WHISKER_EYE).release(rid);
         if (parts[HEAD_EYE]) bins.get(Part.HEAD_EYE).release(rid);
@@ -277,9 +283,49 @@ public class Robot implements Runnable {
         if (parts[WHISKER]) bins.get(Part.WHISKER).release(rid);
         if (parts[TOE]) bins.get(Part.TOE).release(rid);
         if (parts[LEG]) bins.get(Part.LEG).release(rid);
-        if (parts[TAIL]) bins.get(Part.TAIL).release(rid);
+        if (parts[TAIL]) bins.get(Part.TAIL).release(rid);**/
     }
 
+    /**
+     * acquire input bins in order
+     * @param requiredInputs    a int array specified which bins are required (the number indicates how many items are required in this bin)
+     * @return  acquireResult   a boolean array specified which bins are acquired successfully. Index 0 ~ 15 indicates the result for each individual bin, index 16 is the total result.
+     */
+    private boolean[] acqurieInputBins(int[] requiredInputs) throws InterruptedException{
+        // init return result
+        boolean[] result = new boolean[INPUT_ACQUIRE_SUCCESS + 1];
+
+        // acquire input bin in order
+        for (int p = 0; p <= CAT; p++){
+            if (requiredInputs[p] > 0){
+                if (bins.get(p).acquire(rid, requiredInputs[p], false)){
+                    // acquired successfully
+                    result[p] = true;
+                }
+                else {
+                    // failed to acquire bin p
+                    // set final result
+                    result[INPUT_ACQUIRE_SUCCESS] = false;
+                    // stop acquiring other bins
+                    return result;
+                }
+            }
+        }
+
+        // acquired all bins successfully
+        result[INPUT_ACQUIRE_SUCCESS] = true;
+        return result;
+    }
+
+
+    // check if we have acquried all input bins successfully, if not, release all acquired input bins
+    private boolean checkIfAcquiredInputBinsSuccessfully(boolean[] result){
+        if (result[INPUT_ACQUIRE_SUCCESS])  return true;
+
+        // did not acquire all bins successfully, release bins already acquired if there are
+        releaseAcquiredParts(result);
+        return false;
+    }
 
 }
 
