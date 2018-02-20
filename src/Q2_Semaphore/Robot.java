@@ -83,6 +83,9 @@ public class Robot implements Runnable {
             // put object in output bin
             bins[TASK_OUTPUT[task]].updateAmount(rid, 1, true);
             bins[TASK_OUTPUT[task]].release(rid);
+
+
+            if (task == T_CAT) cnt++;
         }
 
     }

@@ -7,13 +7,13 @@ import java.util.HashMap;
  */
 public class catmaker {
     // part type
-    static int TAIL = 0, LEG = 1, TOE = 2, WHISKER = 3, EYE = 4, HEAD = 5, BODY = 6,
+    static final int TAIL = 0, LEG = 1, TOE = 2, WHISKER = 3, EYE = 4, HEAD = 5, BODY = 6,
             FORELEG = 7, HINDLEG = 8, BODY_TAIL = 9, BODY_LEGS = 10, BODY_TAIL_LEGS = 11,
             HEAD_WHISKER = 12, HEAD_EYE = 13,
             HEAD_WHISKER_EYE = 14, CAT = 15;
 
     // task type
-    static int T_HINDLEG = 0, T_FORELEG = 1,
+    static final int T_HINDLEG = 0, T_FORELEG = 1,
             T_BODY_TAIL_LEGS_L = 2, T_BODY_TAIL_LEGS_T = 3,
             T_BODY_LEGS = 4, T_BODY_TAIL = 5,
             T_HEAD_WHISKER_EYE_W = 6, T_HEAD_WHISKER_EYE_E = 7,
@@ -30,6 +30,7 @@ public class catmaker {
     public static void main(String[] args) {
 
         // init
+        init();
         bins = new Bin[CAT + 1];
         for (int i = 0; i <= CAT; i++){
             bins[i] = new Bin(i);
