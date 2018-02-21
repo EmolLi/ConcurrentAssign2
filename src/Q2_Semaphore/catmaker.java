@@ -158,6 +158,5 @@ public class catmaker {
         TASK_TIME_MIN[T_CAT] = 10;
         TASK_TIME_MAX[T_CAT] = 20;
 
-
     }
 }

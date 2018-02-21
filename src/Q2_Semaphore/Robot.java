@@ -18,6 +18,8 @@ public class Robot implements Runnable {
     private int rid;
     private RobotType type;
     private int cnt;
+    private long startTime = System.currentTimeMillis();
+    private long idleTime = 0;
 
     public Robot(int rid, RobotType type) {
         this.rid = rid;
@@ -27,13 +29,17 @@ public class Robot implements Runnable {
 
     @Override
     public void run() {
+        startTime = System.currentTimeMillis();
+        idleTime = 0;
         try {
             while (cnt < 250) {
                 int task = selectTask();
                 performTask(task);
             }
+            throw new InterruptedException();
         } catch (InterruptedException e) {
-            System.out.println("Robot " + rid + " exited.");
+            long totalTime = System.currentTimeMillis() - startTime;
+            System.out.println("Robot " + rid + ", total time: " + totalTime + ", idle time: " + idleTime + ", idle ratio: " + (float)((float)idleTime/totalTime));
         }
 
     }
@@ -65,6 +71,7 @@ public class Robot implements Runnable {
 
 
     private void performTask(int task) throws InterruptedException{
+        long tempStartTime = System.currentTimeMillis();
         boolean[] result = acqurieInputBins(TASK_MATERIAL[task]);
 
 
@@ -74,13 +81,16 @@ public class Robot implements Runnable {
             takeResource(TASK_MATERIAL[task]);
             // release all the input bins
             releaseAcquiredParts(result);
+            idleTime += System.currentTimeMillis() - tempStartTime;
 
 
             Thread.sleep(ThreadLocalRandom.current().nextInt(TASK_TIME_MIN[task], TASK_TIME_MAX[task]));
 
 
             // acquire output bin
+            tempStartTime = System.currentTimeMillis();
             bins[TASK_OUTPUT[task]].acquire(rid, 1, true);
+            idleTime += System.currentTimeMillis() - tempStartTime;
             // put object in output bin
             bins[TASK_OUTPUT[task]].updateAmount(rid, 1, true);
             bins[TASK_OUTPUT[task]].release(rid);
@@ -90,21 +100,10 @@ public class Robot implements Runnable {
                 cnt++;
                 System.out.println("Cat number: " + cnt);
             }
-//            System.out.println("Robot " + rid + " - " + type);
         }
         else{
-            /**
-            if (task == T_CAT){
-                System.out.println("cat sleep: "
-                        +bins[BODY_TAIL_LEGS].cnt + " "
-                        + bins[HEAD_WHISKER_EYE].cnt + " "
-                        +bins[FORELEG].cnt + " "
-                        +bins[FORELEG].cnt + " "
-                        +bins[FORELEG].cnt + " "
-                        +bins[FORELEG].cnt + " "
-                        +bins[FORELEG].cnt + " ");
-            }**/
             Thread.sleep(ThreadLocalRandom.current().nextInt(1, 5));
+            idleTime += System.currentTimeMillis() - tempStartTime;
         }
 
     }

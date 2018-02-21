@@ -1,5 +1,7 @@
 package Q2_Monitor;
 
+import java.util.concurrent.ThreadLocalRandom;
+
 import static Q2_Monitor.catmaker.*;
 
 /**
@@ -10,17 +12,15 @@ import static Q2_Monitor.catmaker.*;
 public class Bin {
     private int type;
     private volatile int cnt;
-    private boolean available;
 
     public Bin(int t){
         this.type = t;
         this.cnt = 0;
-        this.available = true;
     }
 
 
     // FIXME: synchornized?
-    private boolean hasItem(int amount){
+    public boolean hasItem(int amount){
         switch (type){
             // infinite primitive part
             //bodies, tails, legs, toes, heads, eyes, and whiskers
@@ -43,8 +43,8 @@ public class Bin {
     public boolean canAcquire(int amount, boolean output){
         // no need to worry about if there is object in the bin if we are
         // producing things
-        if (output) return available;
-        return this.hasItem(amount) && this.available;
+        if (output) return true;
+        return this.hasItem(amount);
     }
 
     /**
@@ -54,31 +54,14 @@ public class Bin {
      * @param output if the robot is producing things
      */
     public synchronized void acquire(int rid, int amount, boolean output) throws InterruptedException{
-//        System.out.println("Robot " + rid +" is acquiring Bin " + type);
 
         while (!canAcquire(amount, output)){
-            wait();
+//            System.out.println("Robot " + rid +" waits " + type);
+            wait(ThreadLocalRandom.current().nextInt(10, 20));
         }
 
-        // acquire
-        this.available = false;
-    }
-
-
-
-    // already acquired semaphore
-    public void updateAmount(int rid, int amount, boolean output){
-//        System.out.println("Robot " + rid + (output ? " put " : " toke ")+ amount +" from Bin " + type);
         this.cnt = output ? this.cnt + amount : this.cnt - amount;
+        notifyAll();
     }
-
-
-    // release the bin
-    public synchronized void release(int rid){
-//        System.out.println("Robot " + rid +" released Bin " + type);
-        this.available = true;
-        notify();
-    }
-
 
 }

@@ -39,109 +39,18 @@ public class Vertex {
 
         // avoid deadlock by acquiring resources in order
 
-
         // this is the first node
         this.lock(index);
-        moveHelper(r1, r2, r3);
-        this.unlock(index);
-        /**
-        if (this == p) {
-            this.l.lock();
-            this.next.l.lock();
-            this.prev.l.lock();
 
-            moveHelper(r1, r2, r3);
-            System.out.println("unlock " + r1);
-            this.prev.l.unlock();
-            this.next.l.unlock();
-            this.l.unlock();
-        }
-
-        // this is the last node
-        if (this.next == p) {
-            this.next.l.lock();
-            this.prev.l.lock();
-            this.l.lock();
-
-            moveHelper(r1, r2, r3);
-            System.out.println("unlock " + r1);
-            this.l.unlock();
-            this.prev.l.unlock();
-            this.next.l.unlock();
-
-        }
-
-        // this is a node in the middle
-        else {
-            this.prev.l.lock();
-            this.l.lock();
-            this.next.l.lock();
-
-            moveHelper(r1, r2, r3);
-            System.out.println("unlock " + r1);
-            this.next.l.unlock();
-            this.l.unlock();
-            this.prev.l.unlock();
-        }**/
-
-/**
         double newX = r1*this.x + r2*this.prev.x + r3*this.next.x;
         double newY = r1*this.y + r2*this.prev.y + r3*this.next.y;
-
         this.x = newX;
         this.y = newY;
-**/
-
-        // TODO: Why should I release lock in reverse order?
-
-
-//        synchronized (this){
-//            moveHelper(r1, r2, r3);
-//        }
-        /** FIXME: does this work?
-         * FIXME: use synchronized block or lock?
-        // avoid deadlock by acquiring resources in order
-
-        // this is the first node
-        if (this == p){
-            synchronized (this){
-                synchronized (this.next){
-                    synchronized (this.prev){
-                        moveHelper(r1, r2, r3);
-                    }
-                }
-            }
-        }
-
-        // this is the last node
-        if (this.next == p){
-            synchronized (this.next){
-                synchronized (this.prev){
-                    synchronized (this){
-                        moveHelper(r1, r2, r3);
-                    }
-                }
-            }
-        }
-
-        // this is a node in the middle
-        else{
-            synchronized (this.prev){
-                synchronized (this.)
-            }
-        }**/
-
-    }
-
-    private void moveHelper(double r1, double r2, double r3){
-        double newX = r1*this.x + r2*this.prev.x + r3*this.next.x;
-        double newY = r1*this.y + r2*this.prev.y + r3*this.next.y;
-
-        this.x = newX;
-        this.y = newY;
-
         System.out.println("mv " + r1);
+
+        this.unlock(index);
     }
+
 
     private void lock(int i){
         if (index == 0){
